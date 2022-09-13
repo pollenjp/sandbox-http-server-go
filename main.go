@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"encoding/json"
 	"log"
 	"net/http"
 )
@@ -12,9 +12,33 @@ func init() {
 
 func main() {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, "Hello, net/http")
-	})
+	mux.HandleFunc(
+		"/", func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json; charset=utf-8")
+
+			res := struct {
+				ContentType string `json:"content_type"`
+				Msg         string `json:"msg"`
+				A           string `json:"a"`
+				B           string `json:"b"`
+			}{
+				ContentType: r.Header.Get("Content-Type"),
+				Msg:         "hello",
+			}
+
+			if v := r.FormValue("a"); v != "" {
+				res.A = v
+			}
+
+			if v := r.FormValue("b"); v != "" {
+				res.B = v
+			}
+
+			if err := json.NewEncoder(w).Encode(res); err != nil {
+				log.Println("Error:", err)
+			}
+		},
+	)
 	s := &http.Server{
 		Addr:    ":8080",
 		Handler: mux,
