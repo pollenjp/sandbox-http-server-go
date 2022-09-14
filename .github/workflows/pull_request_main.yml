@@ -1,4 +1,4 @@
-name: Release Drafter (autolabeler)
+name: CI for main
 
 on:
   workflow_dispatch:
