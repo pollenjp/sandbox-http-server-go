@@ -15,3 +15,7 @@ license:
 .PHONY: goreleaser
 goreleaser:
 	goreleaser release --snapshot --rm-dist
+
+.PHONY: test
+test:
+	go test -v ./...
