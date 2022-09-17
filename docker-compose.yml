@@ -1,0 +1,18 @@
+services:
+  app:
+    container_name: prod
+    image: "pollenjp/sandbox-http-server-go:latest"
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    environment:
+      # SERVER_ADDRESS: 127.0.0.1
+      SERVER_PORT: 8080
+    expose:
+      - 8080
+  nginx:
+    image: nginx:latest
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    ports:
+      - "80:80"
