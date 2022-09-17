@@ -24,6 +24,19 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: ">=1.19.0"
+
+      - name: go licenses check
+        run: |
+          go install github.com/google/go-licenses@latest
+          make license
+
+          # dirty check
+          git dff --quiet || git --no-pager diff
+
       - name: version
         id: version
         run: |
@@ -34,20 +47,6 @@ jobs:
         run: |
           git tag v${{ steps.version.outputs.version }}
           git push origin v${{ steps.version.outputs.version }}
-
-      ######
-      # go #
-      ######
-
-      - name: Set up Go
-        uses: actions/setup-go@v3
-        with:
-          go-version: ">=1.19.0"
-
-      - name: Install go-licenses
-        run: |
-          go install github.com/google/go-licenses@latest
-          make license
 
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v3
