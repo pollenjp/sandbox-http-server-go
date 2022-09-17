@@ -19,3 +19,10 @@ goreleaser:
 .PHONY: test
 test:
 	go test -v ./...
+
+
+.PHONY: docker-rerun
+docker-rerun:
+	docker-compose build --no-cache
+	sudo rm -rf ./docker/postgresql/data
+	docker-compose up
