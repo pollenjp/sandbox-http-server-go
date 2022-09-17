@@ -1,6 +1,23 @@
 services:
+  postgres:
+    image: postgres
+    container_name: postgres
+    expose:
+      - 5432
+    environment:
+      POSTGRES_USER: testuser
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: testdb
+    tty: true
+    # restart: always
+    volumes:
+      - ./docker/postgresql/initdb.d:/docker-entrypoint-initdb.d
+      - ./docker/postgresql/data:/var/lib/postgresql/data
+      # - /etc/localtime:/etc/localtime:ro
   app:
     container_name: prod
+    depends_on:
+      - postgres
     image: "pollenjp/sandbox-http-server-go:latest"
     build:
       context: .
@@ -8,10 +25,14 @@ services:
     environment:
       # SERVER_ADDRESS: 127.0.0.1
       SERVER_PORT: 8080
+      DATABASE_URL: postgres://testuser:password@postgres:5432/testdb?sslmode=disable
     expose:
       - 8080
   nginx:
     image: nginx:latest
+    depends_on:
+      - app
+    restart: always
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
     ports:
