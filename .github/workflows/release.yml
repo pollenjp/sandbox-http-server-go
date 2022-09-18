@@ -29,14 +29,6 @@ jobs:
         with:
           go-version: ">=1.19.0"
 
-      - name: go licenses check
-        run: |
-          go install github.com/google/go-licenses@latest
-          make license
-
-          # dirty check
-          git dff --quiet || git --no-pager diff
-
       - name: version
         id: version
         run: |
