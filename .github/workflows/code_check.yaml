@@ -89,4 +89,4 @@ jobs:
           make license
 
           # check dirty
-          if ! [[ -z $(git status --porcelain licenses)" ]] || ! git diff --quiet; then git status; exit 1; fi
+          if ! [[ -z "$(git status --porcelain licenses)" ]] || ! git diff --quiet; then git status; exit 1; fi
