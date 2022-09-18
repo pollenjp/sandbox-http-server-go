@@ -58,7 +58,7 @@ func LoadConfig() *config {
 }
 
 func init() {
-	log.SetFlags(log.Lshortfile)
+	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 }
 
 func rootHandlerGenerator(db *sql.DB) http.HandlerFunc {
@@ -72,6 +72,7 @@ func rootHandlerGenerator(db *sql.DB) http.HandlerFunc {
 		)
 		if err != nil {
 			log.Printf("failed to insert access_log: %v", err)
+			return
 		}
 
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
@@ -96,6 +97,7 @@ func rootHandlerGenerator(db *sql.DB) http.HandlerFunc {
 
 		if err := json.NewEncoder(w).Encode(res); err != nil {
 			log.Println("Error:", err)
+			return
 		}
 
 		rows, err := db.Query(
@@ -103,6 +105,7 @@ func rootHandlerGenerator(db *sql.DB) http.HandlerFunc {
 		)
 		if err != nil {
 			log.Printf("failed to select access_log: %v", err)
+			return
 		}
 		defer rows.Close()
 		for rows.Next() {
@@ -110,6 +113,7 @@ func rootHandlerGenerator(db *sql.DB) http.HandlerFunc {
 			err = rows.Scan(&id, &ip, &url_path, &access_ts)
 			if err != nil {
 				log.Printf("failed to scan: %v", err)
+				return
 			}
 			log.Println(id, ip, url_path, access_ts)
 		}
