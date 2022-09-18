@@ -59,64 +59,65 @@ func LoadConfig() *config {
 
 func init() {
 	log.SetFlags(log.Lshortfile)
-
-	Config = LoadConfig()
 }
 
-func rootHandler(w http.ResponseWriter, r *http.Request) {
-	log.Printf("request from %s", r.RemoteAddr)
-	_, err := db.Exec(
-		`INSERT INTO access_log (ip, access_ts, url_path) VALUES ($1, $2, $3)`,
-		r.RemoteAddr,
-		time.Now(),
-		r.URL.Path,
-	)
-	if err != nil {
-		log.Printf("failed to insert access_log: %v", err)
-	}
-
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-
-	res := struct {
-		ContentType string `json:"content_type"`
-		Msg         string `json:"msg"`
-		A           string `json:"a"`
-		B           string `json:"b"`
-	}{
-		ContentType: r.Header.Get("Content-Type"),
-		Msg:         "hello",
-	}
-
-	if v := r.FormValue("a"); v != "" {
-		res.A = v
-	}
-
-	if v := r.FormValue("b"); v != "" {
-		res.B = v
-	}
-
-	if err := json.NewEncoder(w).Encode(res); err != nil {
-		log.Println("Error:", err)
-	}
-
-	rows, err := db.Query(
-		`SELECT id, ip, url_path, access_ts FROM "access_log"`,
-	)
-	if err != nil {
-		log.Printf("failed to select access_log: %v", err)
-	}
-	defer rows.Close()
-	for rows.Next() {
-		id, ip, url_path, access_ts := 0, "", "", ""
-		err = rows.Scan(&id, &ip, &url_path, &access_ts)
+func rootHandlerGenerator(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("request from %s", r.RemoteAddr)
+		_, err := db.Exec(
+			`INSERT INTO access_log (ip, access_ts, url_path) VALUES ($1, $2, $3)`,
+			r.RemoteAddr,
+			time.Now(),
+			r.URL.Path,
+		)
 		if err != nil {
-			log.Printf("failed to scan: %v", err)
+			log.Printf("failed to insert access_log: %v", err)
 		}
-		log.Println(id, ip, url_path, access_ts)
+
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+
+		res := struct {
+			ContentType string `json:"content_type"`
+			Msg         string `json:"msg"`
+			A           string `json:"a"`
+			B           string `json:"b"`
+		}{
+			ContentType: r.Header.Get("Content-Type"),
+			Msg:         "hello",
+		}
+
+		if v := r.FormValue("a"); v != "" {
+			res.A = v
+		}
+
+		if v := r.FormValue("b"); v != "" {
+			res.B = v
+		}
+
+		if err := json.NewEncoder(w).Encode(res); err != nil {
+			log.Println("Error:", err)
+		}
+
+		rows, err := db.Query(
+			`SELECT id, ip, url_path, access_ts FROM "access_log"`,
+		)
+		if err != nil {
+			log.Printf("failed to select access_log: %v", err)
+		}
+		defer rows.Close()
+		for rows.Next() {
+			id, ip, url_path, access_ts := 0, "", "", ""
+			err = rows.Scan(&id, &ip, &url_path, &access_ts)
+			if err != nil {
+				log.Printf("failed to scan: %v", err)
+			}
+			log.Println(id, ip, url_path, access_ts)
+		}
 	}
 }
 
 func main() {
+	Config = LoadConfig()
 
 	var err error
 	db, err = sql.Open("postgres", Config.databaseUrl)
@@ -126,7 +127,7 @@ func main() {
 	defer db.Close()
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/", rootHandler)
+	mux.HandleFunc("/", rootHandlerGenerator(db))
 	s := &http.Server{
 		Addr:    fmt.Sprintf("%s:%d", Config.address, Config.port),
 		Handler: mux,

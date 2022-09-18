@@ -24,5 +24,9 @@ test:
 .PHONY: docker-rerun
 docker-rerun:
 	docker-compose build --no-cache
-	sudo rm -rf ./docker/postgresql/data
+	${MAKE} clean
 	docker-compose up
+
+.PHONY: clean
+clean:
+	sudo rm -rf ./docker/postgresql/data
