@@ -1,11 +1,10 @@
-name: go code check
+name: CI for main
 
 on:
   workflow_dispatch:
   pull_request:
     branches:
       - main
-      - release/*
     types:
       - opened
       - reopened
@@ -15,59 +14,55 @@ permissions:
   contents: read
 
 jobs:
-  gofmt:
+  autolabel:
+    permissions:
+      pull-requests: write
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Set up Go
-        uses: actions/setup-go@v3
+      #############
+      # autolabel #
+      #############
+
+      - uses: release-drafter/release-drafter@v5
         with:
-          go-version: ">=1.19.0"
+          config-name: release-drafter-autolabel.yml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: go mod
+      #####################
+      # check version tag #
+      #####################
+
+      - name: version
+        id: version
         run: |
-          find . -name "*.go" | xargs gofmt -w
+          version=$(head -n 1 < version.txt | tr -d '\n')
+          echo "::set-output name=version::${version}"
 
-          # exit with error if there are any changes
-          if ! git diff --quiet; then git status; exit 1; fi
-
-  go_mod:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-
-      - name: Set up Go
-        uses: actions/setup-go@v3
-        with:
-          go-version: ">=1.19.0"
-
-      - name: go mod
+      - name: tag check
         run: |
-          go mod tidy
+          if $(git fetch origin "refs/tags/v${{ steps.version.outputs.version }}"); then
+            echo "${{ steps.version.outputs.version }} tag already exists!" >&2
+            exit 1
+          fi
 
-          # check dirty
-          if ! git diff --quiet; then git status; exit 1; fi
-
-  go_test:
+  test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-
       - name: Set up Go
         uses: actions/setup-go@v3
         with:
           go-version: ">=1.19.0"
-
       - name: go test
         run: |
           go test -v ./...
@@ -87,6 +82,4 @@ jobs:
         run: |
           go install github.com/google/go-licenses@latest
           make license
-
-          # check dirty
-          if ! [[ -z "$(git status --porcelain licenses)" ]] || ! git diff --quiet; then git status; exit 1; fi
+          git diff --quiet || git --no-pager diff
