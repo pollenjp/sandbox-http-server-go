@@ -1,9 +1,10 @@
-name: autolabeler
+name: go code check
 
 on:
   workflow_dispatch:
   pull_request:
     branches:
+      - main
       - release/*
     types:
       - opened
@@ -14,17 +15,6 @@ permissions:
   contents: read
 
 jobs:
-  autolabel:
-    permissions:
-      pull-requests: write
-    runs-on: ubuntu-latest
-    steps:
-      - uses: release-drafter/release-drafter@v5
-        with:
-          config-name: release-drafter-autolabel.yml
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
   gofmt:
     runs-on: ubuntu-latest
     steps:
@@ -43,7 +33,7 @@ jobs:
           find . -name "*.go" | xargs gofmt -w
 
           # exit with error if there are any changes
-          [ -z "$(git status --porcelain)" ] && git diff --quiet || git status && exit 1
+          git diff --quiet || git status && exit 1
 
   go_mod:
     runs-on: ubuntu-latest
@@ -63,7 +53,7 @@ jobs:
           go mod tidy
 
           # exit with error if there are any changes
-          [ -z "$(git status --porcelain)" ] && git diff --quiet || git status && exit 1
+          git diff --quiet || git status && exit 1
 
   go_test:
     runs-on: ubuntu-latest
@@ -97,4 +87,4 @@ jobs:
         run: |
           go install github.com/google/go-licenses@latest
           make license
-          [ -z "$(git status --porcelain)" ] && git diff --quiet || git status && exit 1
+          [ -z "$(git status --porcelain licenses)" ] && git diff --quiet || git status && exit 1
