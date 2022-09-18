@@ -58,7 +58,7 @@ func LoadConfig() *config {
 }
 
 func init() {
-	log.SetFlags(log.Lshortfile)
+	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 }
 
 func rootHandlerGenerator(db *sql.DB) http.HandlerFunc {
