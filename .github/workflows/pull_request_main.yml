@@ -70,7 +70,7 @@ jobs:
           find . -name "*.go" | xargs gofmt -w
 
           # exit with error if there are any changes
-          [ -z $(git status --porcelain) ] && git diff --quiet || git status || exit 1
+          [ -z $(git status --porcelain) ] && git diff --quiet || git status && exit 1
 
   go_mod:
     runs-on: ubuntu-latest
@@ -90,7 +90,7 @@ jobs:
           go mod tidy
 
           # exit with error if there are any changes
-          [ -z $(git status --porcelain) ] && git diff --quiet || git status || exit 1
+          [ -z $(git status --porcelain) ] && git diff --quiet || git status && exit 1
 
   go_test:
     runs-on: ubuntu-latest
@@ -124,4 +124,4 @@ jobs:
         run: |
           go install github.com/google/go-licenses@latest
           make license
-          [ -z $(git status --porcelain) ] && git diff --quiet || git status || exit 1
+          [ -z $(git status --porcelain) ] && git diff --quiet || git status && exit 1

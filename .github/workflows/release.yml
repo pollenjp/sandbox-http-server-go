@@ -35,7 +35,7 @@ jobs:
           make license
 
           # dirty check
-          [ -z $(git status --porcelain) ] && git diff --quiet || git status || exit 1
+          [ -z $(git status --porcelain) ] && git diff --quiet || git status && exit 1
 
       - name: version
         id: version
