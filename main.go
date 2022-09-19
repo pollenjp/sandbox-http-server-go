@@ -130,6 +130,18 @@ func main() {
 	}
 	defer db.Close()
 
+	func() {
+		for trial := 0; trial < 30; trial++ {
+			if err := db.Ping(); err != nil {
+				log.Println("Database is down:", err)
+				time.Sleep(1 * time.Second)
+				continue
+			}
+			return
+		}
+		log.Fatalln("Database is down. Exiting...")
+	}()
+
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", rootHandlerGenerator(db))
 	s := &http.Server{
