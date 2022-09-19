@@ -23,10 +23,12 @@ test:
 
 .PHONY: docker-rerun
 docker-rerun:
-	docker-compose build --no-cache
 	${MAKE} clean
-	docker-compose up
+	docker-compose build --no-cache
+	docker-compose up -d
+	docker-compose logs -f
 
 .PHONY: clean
 clean:
-	sudo rm -rf ./docker/postgresql/data
+	docker-compose down
+	docker volume rm sandbox-http-server-go_postgres_data
