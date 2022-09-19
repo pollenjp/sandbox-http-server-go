@@ -31,4 +31,4 @@ docker-rerun:
 .PHONY: clean
 clean:
 	docker-compose down
-	docker volume rm sandbox-http-server-go_postgres_data
+	-docker volume rm sandbox-http-server-go_postgres_data
