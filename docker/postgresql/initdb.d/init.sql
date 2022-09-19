@@ -4,7 +4,7 @@ SET client_encoding = 'UTF8';
 
 CREATE TABLE access_log (
   id serial primary key,
-  ip varchar(16) not null, -- ipv4
+  ip varchar(21) not null, -- <ipv4>:<port> (15 + 1 + 5 = 21 )
   url_path varchar(255) not null, -- url path
   access_ts timestamp not null
 );
