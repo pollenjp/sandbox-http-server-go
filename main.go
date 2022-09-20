@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -130,17 +131,30 @@ func main() {
 	}
 	defer db.Close()
 
-	func() {
-		for trial := 0; trial < 30; trial++ {
-			if err := db.Ping(); err != nil {
-				log.Println("Database is down:", err)
-				time.Sleep(1 * time.Second)
-				continue
-			}
-			return
+	ctx := context.Background()
+	pingDB := func(trial int) error {
+		ctx, cancel := context.WithTimeout(ctx, 1*time.Second)
+		defer cancel()
+		if err := db.PingContext(ctx); err != nil {
+			log.Printf("Database is down (%d): %s", trial, err)
+			time.Sleep(1 * time.Second)
+			return err
 		}
-		log.Fatalln("Database is down. Exiting...")
-	}()
+		return nil
+	}
+	trial := 0
+	for {
+		trial++
+		if err := pingDB(trial); err != nil {
+			if trial > 30 {
+				log.Fatalln("Database is down. Exiting...")
+			}
+			continue
+		}
+
+		log.Printf("Database is up. Starting server...")
+		break
+	}
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", rootHandlerGenerator(db))
