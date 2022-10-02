@@ -6,6 +6,13 @@
 
 | Required | required | example |
 | :-- | :-- | :-- |
-| `DATABASE_URL` | yes | `postgres://testuser:password@postgres:5432/testdb?sslmode=disable`
-| `SERVER_ADDRESS` | no | `127.0.0.1`
-| `SERVER_PORT` | no | `8080`
+| `DATABASE_URL` | no | `postgres://testuser:password@postgres:5432/testdb?sslmode=disable` |
+| `SERVER_ADDRESS` | no | `127.0.0.1` |
+| `SERVER_PORT` | no | `8080` |
+
+## Accessible paths
+
+| path | description |
+|:--|:--|
+| `/` | return simple text. |
+| `/db` | You can access when you set `DATABASE_URL` . |
