@@ -16,7 +16,7 @@ import (
 
 var (
 	Config *config
-	db     *sql.DB
+	db     *sql.DB = nil
 )
 
 type AccessLog struct {
@@ -48,7 +48,7 @@ func LoadConfig() *config {
 
 	databaseUrl, found := os.LookupEnv("DATABASE_URL")
 	if !found {
-		log.Fatalf("DATABASE_URL is not set")
+		log.Println("DATABASE_URL is not set")
 	}
 	return &config{
 
@@ -62,7 +62,13 @@ func init() {
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 }
 
-func rootHandlerGenerator(db *sql.DB) http.HandlerFunc {
+func rootHandlerGenerator() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintln(w, "Hello, net/http", r.RemoteAddr)
+	}
+}
+
+func dbHandlerGenerator(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("request from %s", r.RemoteAddr)
 		_, err := db.Exec(
@@ -121,16 +127,7 @@ func rootHandlerGenerator(db *sql.DB) http.HandlerFunc {
 	}
 }
 
-func main() {
-	Config = LoadConfig()
-
-	var err error
-	db, err = sql.Open("postgres", Config.databaseUrl)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	defer db.Close()
-
+func connectToDB(db *sql.DB) error {
 	ctx := context.Background()
 	pingDB := func(trial int) error {
 		ctx, cancel := context.WithTimeout(ctx, 1*time.Second)
@@ -147,7 +144,8 @@ func main() {
 		trial++
 		if err := pingDB(trial); err != nil {
 			if trial > 30 {
-				log.Fatalln("Database is down. Exiting...")
+				log.Println("Database is down.")
+				return err
 			}
 			continue
 		}
@@ -155,9 +153,30 @@ func main() {
 		log.Printf("Database is up. Starting server...")
 		break
 	}
+	return nil
+}
+
+func main() {
+	Config = LoadConfig()
+
+	if Config.databaseUrl != "" {
+		var err error
+		db, err = sql.Open("postgres", Config.databaseUrl)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		defer db.Close()
+
+		if err := connectToDB(db); err != nil {
+			log.Fatalln(err)
+		}
+	}
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/", rootHandlerGenerator(db))
+	mux.HandleFunc("/", rootHandlerGenerator())
+	if db != nil {
+		mux.HandleFunc("/db", dbHandlerGenerator(db))
+	}
 	s := &http.Server{
 		Addr:    fmt.Sprintf("%s:%d", Config.address, Config.port),
 		Handler: mux,

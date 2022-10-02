@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -21,7 +22,28 @@ func (a AnyTime) Match(v driver.Value) bool {
 	return ok
 }
 
-func TestSample(t *testing.T) {
+func TestPathRoot(t *testing.T) {
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest("GET", "/", nil)
+
+	rootHandlerGenerator()(w, r)
+
+	res := w.Result()
+	defer res.Body.Close()
+	if res.StatusCode != http.StatusOK {
+		t.Fatal("unexpected status code")
+	}
+	b, err := io.ReadAll(res.Body)
+	if err != nil {
+		t.Fatal("unexpected error")
+	}
+	expected := fmt.Sprintf("Hello, net/http %s\n", r.RemoteAddr)
+	if s := string(b); s != expected {
+		t.Fatalf("unexpected response:\nexpected: %s\nactual: %s", s, expected)
+	}
+}
+
+func TestPathDb(t *testing.T) {
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest("GET", "/", nil)
 
@@ -48,7 +70,7 @@ func TestSample(t *testing.T) {
 			WillReturnRows(rows)
 	}
 
-	rootHandlerGenerator(db)(w, r)
+	dbHandlerGenerator(db)(w, r)
 
 	res := w.Result()
 	defer res.Body.Close()
