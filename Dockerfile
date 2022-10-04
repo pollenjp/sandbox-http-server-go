@@ -11,4 +11,4 @@ RUN ldd ./build/app || true
 FROM debian:bullseye-slim as prod
 COPY --from=builder /src/build/app /app
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-CMD ["/app"]
+ENTRYPOINT ["/app"]
