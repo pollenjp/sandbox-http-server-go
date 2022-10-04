@@ -19,12 +19,6 @@ var (
 	db     *sql.DB = nil
 )
 
-type AccessLog struct {
-	id       int
-	datetime time.Time
-	path     string
-}
-
 type config struct {
 	address     string
 	port        int
