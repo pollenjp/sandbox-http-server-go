@@ -9,6 +9,19 @@ RUN \
 RUN ldd ./build/app || true
 
 FROM debian:bullseye-slim as prod
-COPY --from=builder /src/build/app /app
+ARG APP_DIR=/usr/src/app
+ARG APP_USER=appuser
+
+COPY --from=builder /src/build/app ${APP_DIR}/app
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-ENTRYPOINT ["/app"]
+
+RUN groupadd "${APP_USER}" \
+    && useradd -g "${APP_USER}" "${APP_USER}" \
+    && mkdir -p "${APP_DIR}"
+
+RUN chown -R "${APP_USER}:${APP_USER}" "${APP_DIR}"
+
+USER ${APP_USER}
+WORKDIR ${APP_DIR}
+
+CMD ["./app"]
