@@ -19,12 +19,6 @@ var (
 	db     *sql.DB = nil
 )
 
-type AccessLog struct {
-	id       int
-	datetime time.Time
-	path     string
-}
-
 type config struct {
 	address     string
 	port        int
@@ -64,13 +58,14 @@ func init() {
 
 func rootHandlerGenerator() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("Recieved a '/' request from %s", r.RemoteAddr)
 		fmt.Fprintln(w, "Hello, net/http", r.RemoteAddr)
 	}
 }
 
 func dbHandlerGenerator(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("request from %s", r.RemoteAddr)
+		log.Printf("Recieved a '/db' request from %s", r.RemoteAddr)
 		_, err := db.Exec(
 			`INSERT INTO access_log (ip, access_ts, url_path) VALUES ($1, $2, $3)`,
 			r.RemoteAddr,
