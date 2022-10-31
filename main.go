@@ -20,9 +20,25 @@ var (
 )
 
 type config struct {
-	address     string
-	port        int
-	databaseUrl string
+	address    string
+	port       int
+	dbHost     string
+	dbPort     string
+	dbUser     string
+	dbName     string
+	dbPassword string
+	dbOptions  string
+}
+
+func (c *config) isValidDatabaseInfo() bool {
+	if c.dbHost == "" || c.dbPort == "" || c.dbUser == "" || c.dbName == "" || c.dbPassword == "" {
+		return false
+	}
+	return true
+}
+
+func (c *config) constructDatabaseUrl() string {
+	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s?%s", c.dbUser, c.dbPassword, c.dbHost, c.dbPort, c.dbName, c.dbOptions)
 }
 
 func LoadConfig() *config {
@@ -40,15 +56,45 @@ func LoadConfig() *config {
 		log.Fatalf("invalid port: %v", err)
 	}
 
-	databaseUrl, found := os.LookupEnv("DATABASE_URL")
+	dbHost, found := os.LookupEnv("DB_HOST")
 	if !found {
-		log.Println("DATABASE_URL is not set")
+		log.Println("DB_HOST is not set")
 	}
-	return &config{
 
-		address:     address,
-		port:        p,
-		databaseUrl: databaseUrl,
+	dbPort, found := os.LookupEnv("DB_PORT")
+	if !found {
+		log.Println("DB_PORT is not set")
+	}
+
+	dbUser, found := os.LookupEnv("DB_USER")
+	if !found {
+		log.Println("DB_USER is not set")
+	}
+
+	dbName, found := os.LookupEnv("DB_NAME")
+	if !found {
+		log.Println("DB_NAME is not set")
+	}
+
+	dbPassword, found := os.LookupEnv("DB_PASSWORD")
+	if !found {
+		log.Println("DB_PASSWORD is not set")
+	}
+
+	dbOptions, found := os.LookupEnv("DB_OPTIONS")
+	if !found {
+		log.Println("DB_OPTIONS is not set")
+	}
+
+	return &config{
+		address:    address,
+		port:       p,
+		dbHost:     dbHost,
+		dbPort:     dbPort,
+		dbUser:     dbUser,
+		dbName:     dbName,
+		dbPassword: dbPassword,
+		dbOptions:  dbOptions,
 	}
 }
 
@@ -154,9 +200,9 @@ func connectToDB(db *sql.DB) error {
 func main() {
 	Config = LoadConfig()
 
-	if Config.databaseUrl != "" {
+	if Config.isValidDatabaseInfo() {
 		var err error
-		db, err = sql.Open("postgres", Config.databaseUrl)
+		db, err = sql.Open("postgres", Config.constructDatabaseUrl())
 		if err != nil {
 			log.Fatalln(err)
 		}

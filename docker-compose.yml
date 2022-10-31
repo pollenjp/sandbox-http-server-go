@@ -23,7 +23,12 @@ services:
     environment:
       # SERVER_ADDRESS: 127.0.0.1
       SERVER_PORT: 8080
-      DATABASE_URL: postgres://testuser:password@postgres:5432/testdb?sslmode=disable
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: testuser
+      DB_NAME: testdb
+      DB_PASSWORD: password
+      DB_OPTIONS: sslmode=disable
     expose:
       - 8080
   nginx:
