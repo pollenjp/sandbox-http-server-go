@@ -32,3 +32,4 @@ docker-rerun:
 clean:
 	docker-compose down
 	-docker volume rm sandbox-http-server-go_postgres_data
+	-docker volume rm sandbox-http-server-go_nginx_data
