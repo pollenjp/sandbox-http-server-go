@@ -16,3 +16,17 @@
 |:--|:--|
 | `/` | return simple text. |
 | `/db` | You can access when you set `DATABASE_URL` . |
+
+## Development
+
+### Run
+
+```sh
+go run .
+```
+
+docker-compose
+
+```sh
+make docker-rerun
+```
