@@ -104,14 +104,14 @@ func init() {
 
 func rootHandlerGenerator() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("Received a '/' request from %s", r.RemoteAddr)
+		log.Printf("Received a '%s' request from %s", r.RequestURI, r.RemoteAddr)
 		fmt.Fprintln(w, "Hello, net/http", r.RemoteAddr)
 	}
 }
 
 func dbHandlerGenerator(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("Received a '/db' request from %s", r.RemoteAddr)
+		log.Printf("Received a '%s' request from %s", r.RequestURI, r.RemoteAddr)
 		_, err := db.Exec(
 			`INSERT INTO access_log (ip, access_ts, url_path) VALUES ($1, $2, $3)`,
 			r.RemoteAddr,
