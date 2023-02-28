@@ -1,4 +1,4 @@
-name: go code check
+name: go mod
 
 on:
   workflow_dispatch:

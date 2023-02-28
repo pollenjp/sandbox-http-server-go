@@ -1,4 +1,4 @@
-name: go code check
+name: go test
 
 on:
   workflow_dispatch:
