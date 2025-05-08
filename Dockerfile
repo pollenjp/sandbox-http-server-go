@@ -1,4 +1,4 @@
-FROM golang:1.19-bullseye as builder
+FROM mirror.gcr.io/golang:1.19-bullseye as builder
 COPY . /src
 WORKDIR /src
 RUN \
@@ -8,7 +8,7 @@ RUN \
     -o ./build/app
 RUN ldd ./build/app || true
 
-FROM debian:bullseye-slim as prod
+FROM mirror.gcr.io/debian:bullseye-slim as prod
 ARG APP_DIR=/usr/src/app
 ARG APP_USER=appuser
 

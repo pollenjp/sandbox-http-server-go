@@ -24,12 +24,12 @@ test:
 .PHONY: docker-rerun
 docker-rerun:
 	${MAKE} clean
-	docker-compose build --no-cache
-	docker-compose up -d
-	docker-compose logs -f
+	docker compose build --no-cache
+	docker compose up -d
+	docker compose logs -f
 
 .PHONY: clean
 clean:
-	docker-compose down
+	docker compose down
 	-docker volume rm sandbox-http-server-go_postgres_data
 	-docker volume rm sandbox-http-server-go_nginx_data
