@@ -29,6 +29,7 @@ services:
       DB_NAME: testdb
       DB_PASSWORD: password
       DB_OPTIONS: sslmode=disable
+      SAMPLE_VAR: "Sample Var from docker-compose"
     expose:
       - 8080
   nginx:

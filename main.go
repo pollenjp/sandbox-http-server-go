@@ -15,8 +15,9 @@ import (
 )
 
 var (
-	Config *config
-	db     *sql.DB = nil
+	Config    *config
+	db        *sql.DB = nil
+	sampleVar *string = nil
 )
 
 type config struct {
@@ -106,6 +107,9 @@ func rootHandlerGenerator() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Received a '%s' request from %s", r.RequestURI, r.RemoteAddr)
 		fmt.Fprintln(w, "Hello, net/http", r.RemoteAddr)
+		if sampleVar != nil {
+			fmt.Fprintln(w, "SAMPLE_VAR:", *sampleVar)
+		}
 	}
 }
 
@@ -199,6 +203,13 @@ func connectToDB(db *sql.DB) error {
 
 func main() {
 	Config = LoadConfig()
+
+	// Set sample var
+	v, found := os.LookupEnv("SAMPLE_VAR")
+	if !found {
+		log.Println("SAMPLE_VAR is not set")
+	}
+	sampleVar = &v
 
 	if Config.isValidDatabaseInfo() {
 		var err error
