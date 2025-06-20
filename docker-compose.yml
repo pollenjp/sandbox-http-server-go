@@ -1,6 +1,6 @@
 services:
   postgres:
-    image: postgres
+    image: mirror.gcr.io/library/postgres:17.5
     expose:
       - 5432
     environment:
@@ -15,7 +15,7 @@ services:
   webapp:
     depends_on:
       - postgres
-    # image: "ghcr.io/pollenjp/sandbox-http-server-go:latest"
+    # image: "ghcr.io/pollenjp/sandbox-http-server-go:0.1.17"
     image: "pollenjp/sandbox-http-server-go:latest"
     build:
       context: .
